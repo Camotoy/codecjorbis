@@ -70,6 +70,8 @@ import paulscode.sound.SoundSystemLogger;
  */
 public class CodecJOrbis implements ICodec
 {
+    /** For PowerPC compatibility */
+    private static final boolean LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
 /**
  * Used to return a current value from one of the synchronized
  * boolean-interface methods.
@@ -604,9 +606,14 @@ public class CodecJOrbis implements ICodec
                                             val = -32768;
                                         if( val < 0 )
                                             val = val | 0x8000;
-                                        convertedBuffer[ptr] = (byte) (val);
-                                        convertedBuffer[ptr+1] =
-                                                               (byte) (val>>>8);
+                                        if (LITTLE_ENDIAN) {
+                                            convertedBuffer[ptr] = (byte) (val);
+                                            convertedBuffer[ptr+1] = (byte) (val>>>8);
+                                        } else {
+                                            // Reverse it
+                                            convertedBuffer[ptr+1] = (byte) (val);
+                                            convertedBuffer[ptr] = (byte) (val>>>8);
+                                        }
                                         ptr += 2 * (jorbisInfo.channels);
                                     }
                                 }
